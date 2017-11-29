@@ -1,0 +1,55 @@
+* Error Services
+
+This is a contrived example to show how you can handle non-200 responses from [[https://docs.spring.io/spring/docs/3.0.x/javadoc-api/org/springframework/web/client/RestTemplate.html][Spring's ~RestTemplate~]]. 
+
+The project ~problem-service~ is a simple Spring Boot app that doubles any number coming in, but every third time it sends an error back. 
+The project ~consumer~ has a service that calls the doubling service in ~problem-service~ and gives back the result.
+
+
+Run ~./gradlew bootRun~ in both project to run them both. 
+
+Port and Endpoint information:
+
+| Project           | Port | Endpoint                       | Response Status |
+|-------------------+------+--------------------------------+-----------------|
+| ~problem-service~ | 9090 | ~/someService/{value}/double~  | 200 or 406      |
+| ~consumer~        | 8080 | ~/myService/{value}/calculate~ | 200             |
+
+Example of hitting the service in ~consumer~
+
+#+BEGIN_SRC 
+
+> curl -v http://localhost:8080//myService/42/calculate
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> GET //myService/42/calculate HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.56.1
+> Accept: */*
+>
+< HTTP/1.1 200
+< Content-Type: application/json;charset=UTF-8
+< Transfer-Encoding: chunked
+< Date: Wed, 29 Nov 2017 16:13:06 GMT
+<
+* Connection #0 to host localhost left intact
+{"result":84,"error":null}% 
+
+> curl -v http://localhost:8080//myService/42/calculate
+*   Trying 127.0.0.1...
+* TCP_NODELAY set
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> GET //myService/42/calculate HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.56.1
+> Accept: */*
+>
+< HTTP/1.1 200
+< Content-Type: application/json;charset=UTF-8
+< Transfer-Encoding: chunked
+< Date: Wed, 29 Nov 2017 16:13:08 GMT
+<
+* Connection #0 to host localhost left intact
+{"result":null,"error":{"description":"Leeroy Jenkins!"}}% 
+#+END_SRC
